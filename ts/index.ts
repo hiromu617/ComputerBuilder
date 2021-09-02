@@ -1,105 +1,132 @@
-const config = {
-  BASE_URL: 'https://api.recursionist.io/builder/computers',
-  CPU_BRAND_SELECT: 'cpu-brand-select',
-  CPU_MODEL_SELECT: 'cpu-model-select',
-  GPU_BRAND_SELECT: 'gpu-brand-select',
-  GPU_MODEL_SELECT: 'gpu-model-select',
-  NUM_RAM_SELECT: 'num-ram-select',
-  RAM_BRAND_SELECT: 'ram-brand-select',
-  RAM_MODEL_SELECT: 'ram-model-select',
-  HDD_SSD_SELECT: 'hdd-ssd-select',
-  STORAGE_SELECT: 'storage-select',
-  STORAGE_MODEL_SELECT: 'storage-model-select',
-  STORAGE_BRAND_SELECT: 'storage-brand-select',
-  slectedModels: new Map<string, string>(null),
-};
-
-type PartsType = 'CPU' | 'GPU' | 'RAM' | 'HDD' | 'SSD';
-
-type PCParts = {
-  Type: PartsType;
-  'Part Number': string;
-  Brand: string;
-  Model: string;
-  Rank: number;
-  Benchmark: number;
-};
+import { PartsType, PCParts } from './type';
+import { constants } from './constants';
 
 const init = () => {
   fetchDataAndAfterProcess('CPU');
   fetchDataAndAfterProcess('GPU');
   fetchDataAndAfterProcess('RAM');
 
-  const HDDSSDSelect = document.getElementById(config.HDD_SSD_SELECT) as HTMLSelectElement;
+  const HDDSSDSelect = document.getElementById(constants.HDD_SSD_SELECT) as HTMLSelectElement;
   HDDSSDSelect?.addEventListener('change', () => {
     if (HDDSSDSelect.value !== 'SSD' && HDDSSDSelect.value !== 'HDD') return;
     fetchDataAndAfterProcess(HDDSSDSelect.value);
+  });
+
+  const AddPcBtton = document.getElementById(constants.ADD_PC_BTN);
+  AddPcBtton?.addEventListener('click', () => {
+    console.log(constants.slectedModelsMap);
+    if (constants.slectedModelsMap.size < 4) {
+      alert('全て選択してください');
+    }
   });
 };
 
 const fetchDataAndAfterProcess = (type: PartsType) => {
   console.log('fetch', type);
-  fetch(config.BASE_URL + `?type=${type.toLowerCase()}`)
+  fetch(constants.BASE_URL + `?type=${type.toLowerCase()}`)
     .then((res) => res.json())
     .then((data: PCParts[]) => {
       if (type === 'CPU') {
         const { BrandSet, BrandModelMap } = generateSetAndMap(data);
-        const BrandSelect = document.getElementById(config.CPU_BRAND_SELECT) as HTMLSelectElement;
+        const BrandSelect = document.getElementById(constants.CPU_BRAND_SELECT) as HTMLSelectElement;
+        const ModelSelect = document.getElementById(constants.CPU_MODEL_SELECT) as HTMLSelectElement;
 
-        setOption(Array.from(BrandSet), config.CPU_BRAND_SELECT);
+        setOption(Array.from(BrandSet), constants.CPU_BRAND_SELECT);
 
         BrandSelect?.addEventListener('change', () => {
-          setOption(BrandModelMap.get(BrandSelect.value), config.CPU_MODEL_SELECT);
+          setOption(BrandModelMap.get(BrandSelect.value), constants.CPU_MODEL_SELECT);
+        });
+        // 選んだModelをMapにセットする
+        ModelSelect?.addEventListener('change', () => {
+          if (ModelSelect.value === '-') {
+            constants.slectedModelsMap.delete(type);
+            return;
+          }
+          const selectedModel = data.find((PCParts) => PCParts.Model === ModelSelect.value);
+          if (!selectedModel) return;
+          constants.slectedModelsMap.set(type, selectedModel);
         });
       } else if (type === 'GPU') {
         const { BrandSet, BrandModelMap } = generateSetAndMap(data);
-        const BrandSelect = document.getElementById(config.GPU_BRAND_SELECT) as HTMLSelectElement;
+        const BrandSelect = document.getElementById(constants.GPU_BRAND_SELECT) as HTMLSelectElement;
+        const ModelSelect = document.getElementById(constants.GPU_MODEL_SELECT) as HTMLSelectElement;
 
-        setOption(Array.from(BrandSet), config.GPU_BRAND_SELECT);
+        setOption(Array.from(BrandSet), constants.GPU_BRAND_SELECT);
 
         BrandSelect?.addEventListener('change', () => {
-          setOption(BrandModelMap.get(BrandSelect.value), config.GPU_MODEL_SELECT);
+          setOption(BrandModelMap.get(BrandSelect.value), constants.GPU_MODEL_SELECT);
+        });
+        // 選んだModelをMapにセットする
+        ModelSelect?.addEventListener('change', () => {
+          if (ModelSelect.value === '-') {
+            constants.slectedModelsMap.delete(type);
+            return;
+          }
+          const selectedModel = data.find((PCParts) => PCParts.Model === ModelSelect.value);
+          if (!selectedModel) return;
+          constants.slectedModelsMap.set(type, selectedModel);
         });
       } else if (type === 'RAM') {
         const { BrandSet, BrandModelMap } = generateSetAndMap(data);
-        const BrandSelect = document.getElementById(config.RAM_BRAND_SELECT) as HTMLSelectElement;
-        const NumRamSelect = document.getElementById(config.NUM_RAM_SELECT) as HTMLSelectElement;
+        const BrandSelect = document.getElementById(constants.RAM_BRAND_SELECT) as HTMLSelectElement;
+        const ModelSelect = document.getElementById(constants.RAM_MODEL_SELECT) as HTMLSelectElement;
+        const NumRamSelect = document.getElementById(constants.NUM_RAM_SELECT) as HTMLSelectElement;
 
-        setOption(Array.from(BrandSet), config.RAM_BRAND_SELECT);
+        setOption(Array.from(BrandSet), constants.RAM_BRAND_SELECT);
 
         BrandSelect?.addEventListener('change', () => {
           if (NumRamSelect.value === '-' || BrandSelect.value === '-') return;
           const filteredRamModels = filterRamModels(BrandModelMap.get(BrandSelect.value), +NumRamSelect.value);
-          setOption(filteredRamModels, config.RAM_MODEL_SELECT);
+          setOption(filteredRamModels, constants.RAM_MODEL_SELECT);
         });
         NumRamSelect?.addEventListener('change', () => {
           if (NumRamSelect.value === '-' || BrandSelect.value === '-') return;
           const filteredRamModels = filterRamModels(BrandModelMap.get(BrandSelect.value), +NumRamSelect.value);
-          setOption(filteredRamModels, config.RAM_MODEL_SELECT);
+          setOption(filteredRamModels, constants.RAM_MODEL_SELECT);
+        });
+
+        // 選んだModelをMapにセットする
+        ModelSelect?.addEventListener('change', () => {
+          if (ModelSelect.value === '-') {
+            constants.slectedModelsMap.delete(type);
+            return;
+          }
+          const selectedModel = data.find((PCParts) => PCParts.Model === ModelSelect.value);
+          if (!selectedModel) return;
+          constants.slectedModelsMap.set(type, selectedModel);
         });
       } else if (type === 'HDD' || type === 'SSD') {
         const { BrandSet, BrandModelMap } = generateSetAndMap(data);
-        const BrandSelect = document.getElementById(config.STORAGE_BRAND_SELECT) as HTMLSelectElement;
-        const ModelSelect = document.getElementById(config.STORAGE_MODEL_SELECT) as HTMLSelectElement;
-        const StorageSelect = document.getElementById(config.STORAGE_SELECT) as HTMLSelectElement;
+        const BrandSelect = document.getElementById(constants.STORAGE_BRAND_SELECT) as HTMLSelectElement;
+        const ModelSelect = document.getElementById(constants.STORAGE_MODEL_SELECT) as HTMLSelectElement;
+        const StorageSelect = document.getElementById(constants.STORAGE_SELECT) as HTMLSelectElement;
         const StorageSet = generateStorageSet(data);
 
-        setOption(Array.from(StorageSet), config.STORAGE_SELECT);
-        setOption(Array.from(BrandSet), config.STORAGE_BRAND_SELECT);
+        setOption(Array.from(StorageSet), constants.STORAGE_SELECT);
+        setOption(Array.from(BrandSet), constants.STORAGE_BRAND_SELECT);
 
         BrandSelect?.addEventListener('change', () => {
           if (StorageSelect.value === '-' || BrandSelect.value === '-') return;
           const filteredStorageModels = filterStorageModels(BrandModelMap.get(BrandSelect.value), StorageSelect.value);
-          setOption(filteredStorageModels, config.STORAGE_MODEL_SELECT);
+          setOption(filteredStorageModels, constants.STORAGE_MODEL_SELECT);
         });
         StorageSelect?.addEventListener('change', () => {
           if (StorageSelect.value === '-' || BrandSelect.value === '-') return;
           const filteredStorageModels = filterStorageModels(BrandModelMap.get(BrandSelect.value), StorageSelect.value);
-          setOption(filteredStorageModels, config.STORAGE_MODEL_SELECT);
+          setOption(filteredStorageModels, constants.STORAGE_MODEL_SELECT);
         });
 
+        // 選んだModelをMapにセットする
         ModelSelect?.addEventListener('change', () => {
-          const selectedModel = data.filter((PCParts) => PCParts.Model === ModelSelect.value);
+          if (ModelSelect.value === '-') {
+            constants.slectedModelsMap.delete(type);
+            return;
+          }
+          const selectedModel = data.find((PCParts) => PCParts.Model === ModelSelect.value);
+          if (!selectedModel) return;
+          constants.slectedModelsMap.delete('HDD');
+          constants.slectedModelsMap.delete('SSD');
+          constants.slectedModelsMap.set(type, selectedModel);
         });
       }
     });
@@ -127,7 +154,6 @@ const filterRamModels = (models: string[], num: number) => {
 
 // 正規表現でStorageを取り出し、絞り込む
 const filterStorageModels = (models: string[], storage: string) => {
-  console.log(models, storage);
   return models.filter((model) => {
     const storageVal = model.match(/\d*[TG]B/g);
     if (!storageVal) return;
