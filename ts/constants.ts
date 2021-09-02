@@ -14,5 +14,6 @@ export const constants = {
   STORAGE_MODEL_SELECT: 'storage-model-select',
   STORAGE_BRAND_SELECT: 'storage-brand-select',
   ADD_PC_BTN: 'add-pc-button',
-  slectedModelsMap: new Map<PartsType, PCParts>(null),
+  PC_CONTAINER: 'pc-container',
+  slectedPartsMap: new Map<PartsType, PCParts>(null),
 };

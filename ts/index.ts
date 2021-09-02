@@ -14,10 +14,11 @@ const init = () => {
 
   const AddPcBtton = document.getElementById(constants.ADD_PC_BTN);
   AddPcBtton?.addEventListener('click', () => {
-    console.log(constants.slectedModelsMap);
-    if (constants.slectedModelsMap.size < 4) {
+    console.log(constants.slectedPartsMap);
+    if (constants.slectedPartsMap.size < 4) {
       alert('全て選択してください');
     }
+    renderPC(constants.slectedPartsMap);
   });
 };
 
@@ -39,12 +40,12 @@ const fetchDataAndAfterProcess = (type: PartsType) => {
         // 選んだModelをMapにセットする
         ModelSelect?.addEventListener('change', () => {
           if (ModelSelect.value === '-') {
-            constants.slectedModelsMap.delete(type);
+            constants.slectedPartsMap.delete(type);
             return;
           }
           const selectedModel = data.find((PCParts) => PCParts.Model === ModelSelect.value);
           if (!selectedModel) return;
-          constants.slectedModelsMap.set(type, selectedModel);
+          constants.slectedPartsMap.set(type, selectedModel);
         });
       } else if (type === 'GPU') {
         const { BrandSet, BrandModelMap } = generateSetAndMap(data);
@@ -59,12 +60,12 @@ const fetchDataAndAfterProcess = (type: PartsType) => {
         // 選んだModelをMapにセットする
         ModelSelect?.addEventListener('change', () => {
           if (ModelSelect.value === '-') {
-            constants.slectedModelsMap.delete(type);
+            constants.slectedPartsMap.delete(type);
             return;
           }
           const selectedModel = data.find((PCParts) => PCParts.Model === ModelSelect.value);
           if (!selectedModel) return;
-          constants.slectedModelsMap.set(type, selectedModel);
+          constants.slectedPartsMap.set(type, selectedModel);
         });
       } else if (type === 'RAM') {
         const { BrandSet, BrandModelMap } = generateSetAndMap(data);
@@ -88,12 +89,12 @@ const fetchDataAndAfterProcess = (type: PartsType) => {
         // 選んだModelをMapにセットする
         ModelSelect?.addEventListener('change', () => {
           if (ModelSelect.value === '-') {
-            constants.slectedModelsMap.delete(type);
+            constants.slectedPartsMap.delete(type);
             return;
           }
           const selectedModel = data.find((PCParts) => PCParts.Model === ModelSelect.value);
           if (!selectedModel) return;
-          constants.slectedModelsMap.set(type, selectedModel);
+          constants.slectedPartsMap.set(type, selectedModel);
         });
       } else if (type === 'HDD' || type === 'SSD') {
         const { BrandSet, BrandModelMap } = generateSetAndMap(data);
@@ -119,14 +120,14 @@ const fetchDataAndAfterProcess = (type: PartsType) => {
         // 選んだModelをMapにセットする
         ModelSelect?.addEventListener('change', () => {
           if (ModelSelect.value === '-') {
-            constants.slectedModelsMap.delete(type);
+            constants.slectedPartsMap.delete(type);
             return;
           }
           const selectedModel = data.find((PCParts) => PCParts.Model === ModelSelect.value);
           if (!selectedModel) return;
-          constants.slectedModelsMap.delete('HDD');
-          constants.slectedModelsMap.delete('SSD');
-          constants.slectedModelsMap.set(type, selectedModel);
+          constants.slectedPartsMap.delete('HDD');
+          constants.slectedPartsMap.delete('SSD');
+          constants.slectedPartsMap.set(type, selectedModel);
         });
       }
     });
@@ -183,4 +184,75 @@ const generateStorageSet = (data: PCParts[]) => {
       return amount.toString();
     })
   ) as Set<string>;
+};
+
+// 完成したPCをレンダリング
+const renderPC = (slectedPartsMap: Map<PartsType, PCParts>) => {
+  const cpu = slectedPartsMap.get('CPU');
+  const gpu = slectedPartsMap.get('GPU');
+  const ram = slectedPartsMap.get('RAM');
+  const memory = slectedPartsMap.get('HDD') || slectedPartsMap.get('SSD');
+  const { gamingScore, workingScore } = getScore(slectedPartsMap);
+  const container = document.getElementById(constants.PC_CONTAINER);
+  if (!container) return;
+  container.innerHTML = `
+  <div class="container mx-auto">
+  <p class="mb-3 text-2xl text-gray-600 font-bold"><span class="inline-block bg-purple-200 rounded-full px-4 py-1 text-xl font-semibold text-gray-700 mr-2">SCORE</span>  Gaming ${Math.round(gamingScore)}% Working ${Math.round(workingScore)}%</p>
+          <table class="w-full border-collapse">
+          <thead class="w-full">
+            <tr>
+              <th class="py-4 px-6 text-center bg-gray-400 font-bold uppercase text-sm text-white border-b border-grey-light">type</th>
+              <th class="py-4 px-6 text-center bg-gray-400 font-bold uppercase text-sm text-white border-b border-grey-light">Brand</th>
+              <th class="py-4 px-6 text-center bg-gray-400 font-bold uppercase text-sm text-white border-b border-grey-light">Model</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="hover:bg-grey-lighter">
+              <td class="py-4 px-6 text-center border-b border-grey-light">${cpu?.Type}</td>
+              <td class="py-4 px-6 text-center border-b border-grey-light">${cpu?.Brand}</td>
+              <td class="py-4 px-6 text-center border-b border-grey-light">${cpu?.Model}</td>
+            </tr>
+            <tr class="hover:bg-grey-lighter">
+              <td class="py-4 px-6 text-center border-b border-grey-light">${gpu?.Type}</td>
+              <td class="py-4 px-6 text-center border-b border-grey-light">${gpu?.Brand}</td>
+              <td class="py-4 px-6 text-center border-b border-grey-light">${gpu?.Model}</td>
+            </tr>
+            <tr class="hover:bg-grey-lighter">
+              <td class="py-4 px-6 text-center border-b border-grey-light">${ram?.Type}</td>
+              <td class="py-4 px-6 text-center border-b border-grey-light">${ram?.Brand}</td>
+              <td class="py-4 px-6 text-center border-b border-grey-light">${ram?.Model}</td>
+            </tr>
+            <tr class="hover:bg-grey-lighter">
+              <td class="py-4 px-6 text-center border-b border-grey-light">${memory?.Type}</td>
+              <td class="py-4 px-6 text-center border-b border-grey-light">${memory?.Brand}</td>
+              <td class="py-4 px-6 text-center border-b border-grey-light">${memory?.Model}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+  `;
+};
+
+// スコアを算出
+const getScore = (slectedPartsMap: Map<PartsType, PCParts>): { gamingScore: number; workingScore: number } => {
+  const cpu = slectedPartsMap.get('CPU');
+  const gpu = slectedPartsMap.get('GPU');
+  const ram = slectedPartsMap.get('RAM');
+  const memory = slectedPartsMap.get('HDD') || slectedPartsMap.get('SSD');
+  let gamingScore: number = 0;
+  let workingScore: number = 0;
+
+  if (!cpu || !gpu || !ram || !memory) return { gamingScore, workingScore };
+
+  gamingScore += +cpu.Benchmark * 0.25;
+  gamingScore += +gpu.Benchmark * 0.6;
+  gamingScore += +ram.Benchmark * 0.125;
+  gamingScore += +memory.Benchmark * 0.025;
+
+  workingScore += +cpu.Benchmark * 0.6;
+  workingScore += +gpu.Benchmark * 0.25;
+  workingScore += +ram.Benchmark * 0.1;
+  workingScore += +memory.Benchmark * 0.05;
+
+  return { gamingScore, workingScore };
 };
